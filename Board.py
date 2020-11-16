@@ -25,7 +25,6 @@ class Board:
 						self.constrainHyper(r, c, val);
 				c += 1;
 			r += 1;
-		#self.constrainRows(0, 0, 3);
 
 		f.close();
 		return
@@ -92,6 +91,20 @@ class Board:
 			out += '\n\n';
 		return out;
 
+#MRV
+#go thorugh everyhting and find the minimum
+#keep locations of the minimum in maybe a list?
+
+
+#DEGREE
+#go through the list of locations and check direct neighbors to find best one?
+#keep the min of that in a list as well??? 
+#if there are multiple with the same degree, then we just choose the first one bc arbitrary
+
+#backtracking (recursive)
+#constantly have to run the contraints, if it ever happens so that a box is empty, we return [] or seomthing
+#and go back and replace the thing with the next number in the domain
+#i guess
 
 b = Board('test.txt');
 print(b);
