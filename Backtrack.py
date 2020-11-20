@@ -51,7 +51,7 @@ def checkNeighbors(row, col, assignment):
 	return len(count) - 1;
 
 # checkNeighbors helper (counts unaddigned neighbors in row)
-def checkRow(row, assigment):
+def checkRow(row, assignment):
 	checked = set();
 	i = 0;
 	while i < 9:
@@ -61,7 +61,7 @@ def checkRow(row, assigment):
 	return checked;
 
 # checkNeighbors helper (counts unaddigned neighbors in column)
-def checkCol(col, assigment):
+def checkCol(col, assignment):
 	checked = set();
 	i = 0;
 	while i < 9:
@@ -224,13 +224,18 @@ def printSol(assignment):
 	print(out[:-1]);
 
 
-# initialize domains
-board = Board('test2.txt');
-#initilize assignment
-assignment = [([0] * 9) for i in range(9)];
+def main():
+	# initialize domains
+	board = Board('test2.txt');
+	#initilize assignment
+	assignment = [([0] * 9) for i in range(9)];
 
-#call backtrac print soln if there is one, otherwise no solution
-if backtrack(board, assignment):
-	printSol(assignment)
-else:
-	print('no solution')
+	#call backtrac print soln if there is one, otherwise no solution
+	if backtrack(board, assignment):
+		printSol(assignment)
+	else:
+		print('no solution')
+
+
+if __name__ == '__main__':
+	main();
