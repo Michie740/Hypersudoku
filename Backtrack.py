@@ -1,4 +1,5 @@
-from Board import Board
+from Board import Board;
+import sys;
 
 # choosing next best variable based on 2 heuristics
 def selectUnassigned(board, assignment):
@@ -11,9 +12,9 @@ def selectUnassigned(board, assignment):
 def mrv(board, assignment):
 	out = [];
 	minSize, minR, minC = 10, 10, 10;
-	r = 0
+	r = 0;
 	while r < 9:
-		c = 0
+		c = 0;
 		while c < 9:
 			if assignment[r][c] == 0: #If variable at (r, c) is unassigned
 				# if that domain is the smallest domain, then fill our list with it
@@ -24,8 +25,8 @@ def mrv(board, assignment):
 					out = [(r, c)];
 					minSize = len(board.get(r, c));
 
-			c += 1
-		r += 1
+			c += 1;
+		r += 1;
 	return out
 
 # most unassigned neighbors
@@ -193,6 +194,8 @@ def backtrack(board, assignment):
 		if isConsistent(val, var[0], var[1], assignment):
 			# if it doesn't, then assign the value for that location
 			assignment[var[0]][var[1]] = val;
+			#print(var[0], var[1], '---', val)
+			#printSol(assignment)
 			# and continue with rest of board
 			res = backtrack(board, assignment)
 			# if you can finish rest of board, return true/success
@@ -224,17 +227,42 @@ def printSol(assignment):
 	print(out[:-1]);
 
 
+#construct formatted output string
+def buildOut(assignment):
+	out = '';
+	for row in assignment:
+		for cell in row:
+			out += str(cell) + ' ';
+		out += '\n';
+	return out;
+
+#write to output file
+def writeOutput(fileName, out):
+	'''Writes output string to given file'''
+	f = open(fileName, 'w');
+	f.write(out);
+	f.close();
+	return;
+
+
+
 def main():
+
+	#printType = sys.argv[1]; # '1': Print path backtrack, 'LEGIT ANYTHING ELSE': Don't
+	fileName = sys.argv[1];
+
 	# initialize domains
-	board = Board('test2.txt');
+	board = Board(fileName);
 	#initilize assignment
 	assignment = [([0] * 9) for i in range(9)];
 
-	#call backtrac print soln if there is one, otherwise no solution
+	#call backtrack print soln if there is one, otherwise no solution
 	if backtrack(board, assignment):
 		printSol(assignment)
 	else:
-		print('no solution')
+		print('No solution exists')
+
+	writeOutput('output.txt', buildOut(assignment));
 
 
 if __name__ == '__main__':
