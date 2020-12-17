@@ -1,48 +1,58 @@
-from Board import Board;
-import sys;
+from Board import Board
+import sys
+import random
+
 
 # choosing next best variable based on 2 heuristics
 def selectUnassigned(board, assignment):
-	restrained = mrv(board, assignment)
-	out = degree(restrained, assignment)
-	return out
+	out = mrv(board, assignment)
+	out = degree(out, assignment)
+	return out[0]
 
 
 # most restrained variables (choosing a list of the variables with the smallest domains)
 def mrv(board, assignment):
-	out = [];
-	minSize = 10;
-	r = 0;
+	out = []
+	minSize = 10
+	r = 0
 	while r < 9:
-		c = 0;
+		c = 0
 		while c < 9:
 			if assignment[r][c] == 0: #If variable at (r, c) is unassigned
 				# if that domain is the smallest domain, then fill our list with it
 				if len(board.get(r, c)) == minSize:
-					out.append((r, c));
+					#out = [(r, c)]
+					out.append((r, c))
 				# if its smaller then the domain of whats in the list, then replace it
 				if len(board.get(r, c)) < minSize:
-					out = [(r, c)];
-					minSize = len(board.get(r, c));
-
-			c += 1;
-		r += 1;
+					out = [(r, c)]
+					minSize = len(board.get(r, c))
+			c += 1
+		r += 1
+	# returns list of variables with equal and minimum domain sizes
 	return out
+
 
 # most unassigned neighbors
 def degree(restrained, assignment):
-	maxN = -1 #Number of unassigned neighmors
-	maxR, maxC = 0, 0 #Location of variable with most unassigned neighbors
+	out = []
+	maxN = (-1 * sys.maxsize) - 1 #Number of unassigned neighbors
 	for var in restrained: #var = (r, c)
 		varR, varC = var[0], var[1]
-		#finding the one with the most unassigned neightbors (maxN) from list giben by mrv
-		if checkNeighbors(varR, varC, assignment) > maxN:
-			maxR, maxC = varR, varC
-	#returns r c (location of that place)
-	return (maxR, maxC)
+		#finding the one with the most unassigned neightbors (maxN) from list given by mrv
+		varN = checkNeighbors(varR, varC, assignment)
+		if varN == maxN:
+			out.append((varR, varC))
+		if varN > maxN:
+		 	maxN = varN
+		 	out = [(varR, varC)]
+	#returns list of variables with equal and maximum number of unassigned neighbors
+	return out
+
 
 #counting neighbors (for degree)
 def checkNeighbors(row, col, assignment):
+	# set logic is used to account for overlap of variables in the different neighbor categories
 	count = set()
 	count = count.union(checkRow(row, assignment))
 	count = count.union(checkCol(col, assignment))
@@ -51,7 +61,8 @@ def checkNeighbors(row, col, assignment):
 		count = count.union(checkHyper(row, col, assignment))
 	return len(count) - 1
 
-# checkNeighbors helper (counts unaddigned neighbors in row)
+
+# checkNeighbors helper (counts unassigned neighbors in row)
 def checkRow(row, assignment):
 	checked = set()
 	i = 0
@@ -61,7 +72,8 @@ def checkRow(row, assignment):
 		i += 1
 	return checked
 
-# checkNeighbors helper (counts unaddigned neighbors in column)
+
+# checkNeighbors helper (counts unassigned neighbors in column)
 def checkCol(col, assignment):
 	checked = set()
 	i = 0
@@ -71,7 +83,8 @@ def checkCol(col, assignment):
 		i += 1
 	return checked
 
-# checkNeighbors helper (counts unaddigned neighbors in box)
+
+# checkNeighbors helper (counts unassigned neighbors in box)
 def checkBox(row, col, assignment):
 	checked = set()
 	tempR = row // 3
@@ -91,7 +104,7 @@ def checkBox(row, col, assignment):
 	return checked
 
 
-# checkNeighbors helper (counts unaddigned neighbors in hyperbox)
+# checkNeighbors helper (counts unassigned neighbors in hyperbox)
 def checkHyper(row, col, assignment):
 	checked = set()
 	tempR = row // 4 # if this is 0, then it's the first one , if its 1 then its the second half 
@@ -113,9 +126,13 @@ def checkHyper(row, col, assignment):
 
 # val does not violate constraints
 def isConsistent(val, r, c, assignment):
-	if (inRow(val, r, assignment) or inCol(val, c, assignment) or inBox(val, r, c, assignment) or inHyper(val, r, c, assignment)):
+	if (inRow(val, r, assignment) or 
+		inCol(val, c, assignment) or 
+		inBox(val, r, c, assignment) or 
+		inHyper(val, r, c, assignment)):
 		return False
 	return True
+
 
 # does not violate row constraint
 def inRow(val, row, assignment):
@@ -123,6 +140,7 @@ def inRow(val, row, assignment):
 		if assignment[row][i] == val:
 			return True
 	return False
+
 
 # does not violate colmumn constraint
 def inCol(val, col, assignment):
@@ -169,41 +187,43 @@ def inHyper(val, row, col, assignment):
 
 
 # check if sudoku problem is complete
-def complete(assignment):
+def isComplete(assignment):
+	count = 0
 	for row in assignment:
 		for val in row:
 			if val == 0:
+				count += 1
+			if count > 0:
 				return False
 	return True
 
 
-
 # backtrack
 def backtrack(board, assignment):
+
 	# if its done, return True
-	if complete(assignment):
+	if isComplete(assignment):
 		return True
 	# choosing best variable based on heuristics
 	var = selectUnassigned(board, assignment) #var = (r, c) for best variable
 	# test each value in var's domain
 	for val in board.get(var[0], var[1]):
-		# heck if hat val doesn't violate any constraints
+		# check if that val doesn't violate any constraints
 		if isConsistent(val, var[0], var[1], assignment):
 			# if it doesn't, then assign the value for that location
 			assignment[var[0]][var[1]] = val
 			# and continue with rest of board
-			# printSol(assignment)
 			res = backtrack(board, assignment)
 			# if you can finish rest of board, return true/success
 			if res == True:
 				return res
-		# else it don't work, remove that assignment from the location and try the next val
+			# else it don't work, remove that assignment from the location and try the next val
 			assignment[var[0]][var[1]] = 0
 	# no solution
 	return False
 
 
-# printboard
+# prints solution board in a organized format
 def printSol(assignment):
 	out = '-------------------\n|'
 	row = 0
@@ -225,26 +245,24 @@ def printSol(assignment):
 
 #construct formatted output string
 def buildOut(assignment):
-	out = '';
+	out = ''
 	for row in assignment:
 		for cell in row:
-			out += str(cell) + ' ';
-		out += '\n';
+			out += str(cell) + ' '
+		out += '\n'
 	return out;
+
 
 #write to output file
 def writeOutput(fileName, out):
 	'''Writes output string to given file'''
 	f = open(fileName, 'w');
-	f.write(out);
-	f.close();
-	return;
-
+	f.write(out)
+	f.close()
+	return
 
 
 def main():
-
-	#printType = sys.argv[1]; # '1': Print path backtrack, 'LEGIT ANYTHING ELSE': Don't
 	fileName = sys.argv[1];
 
 	# initialize domains
@@ -252,7 +270,7 @@ def main():
 	#initilize assignment
 	assignment = [([0] * 9) for i in range(9)]
 
-	#call backtrack print soln if there is one, otherwise no solution
+	# call backtrack print soln if there is one, otherwise no solution
 	if backtrack(board, assignment):
 		printSol(assignment)
 	else:
